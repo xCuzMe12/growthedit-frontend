@@ -1,32 +1,31 @@
-import { useState, useEffect } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
-import './ImageSlotsPage.css'
-import { regenerateImage } from '../api';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import './ImageSlotsPage.css';
+import { regenerateImage, generateVideos } from '../api';
 
 interface ImageSlot {
-  id: number
-  url: string
-  regenerating: boolean
-  regeneratePrompt: string
-  isStartFrame: boolean  // Flag to distinguish between start and end frames
+  id: number;
+  url: string;
+  regenerating: boolean;
+  regeneratePrompt: string;
+  isStartFrame: boolean; // Flag to distinguish between start and end frames
 }
 
 interface ImageItem {
-  start_frame_s3_url: string
-  end_frame_s3_url: string
+  start_frame_s3_url: string;
+  end_frame_s3_url: string;
 }
 
 function ImageSlotsPage() {
-  const navigate = useNavigate()
-  const location = useLocation()
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  // State to hold the images (start and end frames)
-  const [images, setImages] = useState<ImageSlot[]>([])
+  // Retrieve images and result from the previous page's state
+  const [images, setImages] = useState<ImageSlot[]>([]);
+  const result = location.state?.result || []; // Get result from location state
+  var result_temp = location.state?.result || [];;
 
   useEffect(() => {
-    // Get the result data passed from the previous page
-    const result = location.state?.result || []
-
     // Create an array of images: first 3 start frames, then 3 end frames
     const generatedImages = [
       // Top 3 start frames (first frames)
@@ -44,46 +43,45 @@ function ImageSlotsPage() {
         regenerating: false,
         regeneratePrompt: '',
         isStartFrame: false,
-      }))
-    ]
-    setImages(generatedImages)  // Update state with the generated images
-  }, [location.state])
+      })),
+    ];
+    setImages(generatedImages); // Update state with the generated images
+  }, [result]);
 
   // Toggle the regenerating state of an image
   const toggleRegenerate = (id: number) => {
-    setImages(images.map(img =>
+    setImages(images.map((img) =>
       img.id === id ? { ...img, regenerating: !img.regenerating, regeneratePrompt: '' } : img
-    ))
-  }
+    ));
+  };
 
   // Update the regeneration prompt for a specific image
   const updateRegeneratePrompt = (id: number, prompt: string) => {
-    setImages(images.map(img =>
+    setImages(images.map((img) =>
       img.id === id ? { ...img, regeneratePrompt: prompt } : img
-    ))
-  }
+    ));
+  };
 
   // Handle the regeneration process when the user clicks "Apply"
   const handleRegenerate = async (id: number) => {
-    const image = images.find((img) => img.id === id)
+    const image = images.find((img) => img.id === id);
     if (image && image.regeneratePrompt) {
       try {
-        console.log(`Regenerating image ${id} with prompt:`, image.regeneratePrompt)
+        console.log(`Regenerating image ${id} with prompt:`, image.regeneratePrompt);
 
         // Call your backend to regenerate the image and get the new URL
         const newImageData = await regenerateImage(image.regeneratePrompt, id);
-        console.log('DATA dana notr', id, image.regeneratePrompt)
-        console.log('New image data received:', newImageData)
+        console.log('New image data received:', newImageData);
+
         // Replace the old image URL with the new one
         setImages(images.map((img) =>
           img.id === id ? { ...img, url: newImageData.s3_url, regenerating: false, regeneratePrompt: '' } : img
-        ))
-
+        ));
       } catch (error) {
-        console.error('Error regenerating image:', error)
+        console.error('Error regenerating image:', error);
       }
     }
-  }
+  };
 
   return (
     <div className="page image-slots-page">
@@ -129,7 +127,30 @@ function ImageSlotsPage() {
         <div className="button-group">
           <button 
             className="button button-primary"
-            onClick={() => navigate('/video-previews')}
+            onClick={async () => {
+              try {
+                // Iterate through the result_temp and delete unnecessary fields
+                const sanitizedResult = result_temp.map((item: any) => ({
+                  id: item.id,  // Ensure `id` is present (it can be omitted if not needed)
+                  clip_id: item.clip_id,
+                  start_frame_s3_url: item.start_frame_s3_url,
+                  end_frame_s3_url: item.end_frame_s3_url,
+                  video_prompt: item.video_prompt,
+                }));
+
+                console.log('Sanitized result for video generation:', sanitizedResult);
+
+                // Now call the API with the sanitized result
+                const result = await generateVideos(sanitizedResult);
+
+                console.log('Result of video generation:', result);
+                navigate('/video-previews', { state: { result } }); // Pass the result to the next page
+
+              } catch (error) {
+                console.error('Error during video generation:', error);
+              }
+
+            }}
           >
             Generate Videos
           </button>
@@ -143,7 +164,7 @@ function ImageSlotsPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default ImageSlotsPage
+export default ImageSlotsPage;

@@ -35,10 +35,26 @@ export const regenerateImage = async (prompt: string, clip_id: number) => {
     throw error;
   }
 
-
 };
 
+export const generateVideos = async (images: any[]) => {
+  try {
+    // Prepare the images data by cleaning up the data
+    const payload = images.map((item: any) => ({
+      id: item.id,  // Include the required id field
+      clip_id: item.clip_id,
+      start_frame_s3_url: item.start_frame_s3_url,
+      end_frame_s3_url: item.end_frame_s3_url,
+      video_prompt: item.video_prompt
+    }));
 
+    const response = await api.post('/generate-videos', { items: payload });
+    return response.data;  // Handle the response as needed
+  } catch (error) {
+    console.error('Error submitting video generation:', error);
+    throw error;
+  }
+};
 
 
 
