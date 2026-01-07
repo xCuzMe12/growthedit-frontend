@@ -1,40 +1,87 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import './ImageSlotsPage.css'
+import { regenerateImage } from '../api';
 
 interface ImageSlot {
   id: number
   url: string
   regenerating: boolean
   regeneratePrompt: string
+  isStartFrame: boolean  // Flag to distinguish between start and end frames
+}
+
+interface ImageItem {
+  start_frame_s3_url: string
+  end_frame_s3_url: string
 }
 
 function ImageSlotsPage() {
   const navigate = useNavigate()
-  const [images, setImages] = useState<ImageSlot[]>([
-    { id: 1, url: 'https://via.placeholder.com/300x400/667eea/ffffff?text=Frame+1', regenerating: false, regeneratePrompt: '' },
-    { id: 2, url: 'https://via.placeholder.com/300x400/764ba2/ffffff?text=Frame+2', regenerating: false, regeneratePrompt: '' },
-    { id: 3, url: 'https://via.placeholder.com/300x400/f093fb/ffffff?text=Frame+3', regenerating: false, regeneratePrompt: '' },
-    { id: 4, url: 'https://via.placeholder.com/300x400/4facfe/ffffff?text=Frame+4', regenerating: false, regeneratePrompt: '' },
-    { id: 5, url: 'https://via.placeholder.com/300x400/00f2fe/ffffff?text=Frame+5', regenerating: false, regeneratePrompt: '' },
-    { id: 6, url: 'https://via.placeholder.com/300x400/43e97b/ffffff?text=Frame+6', regenerating: false, regeneratePrompt: '' },
-  ])
+  const location = useLocation()
 
+  // State to hold the images (start and end frames)
+  const [images, setImages] = useState<ImageSlot[]>([])
+
+  useEffect(() => {
+    // Get the result data passed from the previous page
+    const result = location.state?.result || []
+
+    // Create an array of images: first 3 start frames, then 3 end frames
+    const generatedImages = [
+      // Top 3 start frames (first frames)
+      ...result.map((item: ImageItem, index: number) => ({
+        id: index + 1,
+        url: item.start_frame_s3_url,
+        regenerating: false,
+        regeneratePrompt: '',
+        isStartFrame: true,
+      })),
+      // Bottom 3 end frames (last frames)
+      ...result.map((item: ImageItem, index: number) => ({
+        id: index + 4,
+        url: item.end_frame_s3_url,
+        regenerating: false,
+        regeneratePrompt: '',
+        isStartFrame: false,
+      }))
+    ]
+    setImages(generatedImages)  // Update state with the generated images
+  }, [location.state])
+
+  // Toggle the regenerating state of an image
   const toggleRegenerate = (id: number) => {
-    setImages(images.map(img => 
+    setImages(images.map(img =>
       img.id === id ? { ...img, regenerating: !img.regenerating, regeneratePrompt: '' } : img
     ))
   }
 
+  // Update the regeneration prompt for a specific image
   const updateRegeneratePrompt = (id: number, prompt: string) => {
-    setImages(images.map(img => 
+    setImages(images.map(img =>
       img.id === id ? { ...img, regeneratePrompt: prompt } : img
     ))
   }
 
-  const handleRegenerate = (id: number) => {
-    console.log(`Regenerating image ${id} with prompt:`, images.find(img => img.id === id)?.regeneratePrompt)
-    toggleRegenerate(id)
+  // Handle the regeneration process when the user clicks "Apply"
+  const handleRegenerate = async (id: number) => {
+    const image = images.find((img) => img.id === id)
+    if (image && image.regeneratePrompt) {
+      try {
+        console.log(`Regenerating image ${id} with prompt:`, image.regeneratePrompt)
+
+        // Call your backend to regenerate the image and get the new URL
+        const newImageData = await regenerateImage(image.regeneratePrompt, 0);
+
+        // Replace the old image URL with the new one
+        setImages(images.map((img) =>
+          img.id === id ? { ...img, url: newImageData.s3_url, regenerating: false, regeneratePrompt: '' } : img
+        ))
+
+      } catch (error) {
+        console.error('Error regenerating image:', error)
+      }
+    }
   }
 
   return (
@@ -99,4 +146,3 @@ function ImageSlotsPage() {
 }
 
 export default ImageSlotsPage
-

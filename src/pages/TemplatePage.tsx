@@ -1,35 +1,42 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import './TemplatePage.css'
+// src/components/TemplatePage.tsx
+
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { submitPrompt } from '../api'; // Import the API function
+import './TemplatePage.css';
 
 function TemplatePage() {
-  const navigate = useNavigate()
-  const [template, setTemplate] = useState('add')
-  const [prompt, setPrompt] = useState('')
-  const [image, setImage] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const templates = [
-    { value: 'add', label: 'Ad Template' },
-    { value: 'flashlight_POV', label: 'Flashlight POV Template' },
-  ]
+  const navigate = useNavigate();
+  const [template, setTemplate] = useState('add');
+  const [prompt, setPrompt] = useState('');
+  const [image, setImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      setImage(file)
-      const reader = new FileReader()
+      setImage(file);
+      const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result as string)
-      }
-      reader.readAsDataURL(file)
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
 
-  const handleSubmit = () => {
-    if (prompt || image) {
-      navigate('/image-slots')
+ const handleSubmit = async () => {
+  if (prompt || image) {
+    try {
+      const result = await submitPrompt(prompt);
+      console.log('Response from API:', result);
+
+      // Pass result as state to the next page
+      navigate('/image-slots', { state: { result } });
+    } catch (error) {
+      console.error('Error during submission:', error);
     }
   }
+};
 
   return (
     <div className="page template-page">
@@ -41,7 +48,7 @@ function TemplatePage() {
         <div className="form-section">
           <div className="form-group">
             <label className="label">Select Template</label>
-            <select 
+            <select
               className="input-field select-field"
               value={template}
               onChange={(e) => setTemplate(e.target.value)}
@@ -62,7 +69,6 @@ function TemplatePage() {
           </div>
         </div>
 
-        {/* Only show the reference image section if the template is "Ad Template" */}
         {template === 'add' && (
           <div className="form-group">
             <label className="label">Reference Image (Optional)</label>
@@ -95,7 +101,7 @@ function TemplatePage() {
         )}
 
         <div className="button-group">
-          <button 
+          <button
             className="button button-primary"
             onClick={handleSubmit}
             disabled={!prompt && !image}
@@ -103,7 +109,7 @@ function TemplatePage() {
             Generate Images
           </button>
 
-          <button 
+          <button
             className="button button-secondary"
             onClick={() => navigate('/')}
           >
@@ -112,7 +118,7 @@ function TemplatePage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default TemplatePage
+export default TemplatePage;

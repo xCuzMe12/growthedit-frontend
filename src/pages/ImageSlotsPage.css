@@ -1,5 +1,7 @@
 .image-slots-page .page-content {
   max-width: 1600px;
+  margin: 0 auto; /* Center the content horizontally */
+  padding: 20px;
 }
 
 .images-grid {
@@ -23,6 +25,7 @@
   border: 2px solid rgba(153, 104, 255, 0.2);
   aspect-ratio: 3 / 4;
   transition: all 0.3s ease;
+  background-color: #000; /* Add a background color to avoid unstyled loading state */
 }
 
 .image-container:hover {
@@ -87,11 +90,20 @@
 .regenerate-input .input-field {
   padding: 14px 18px;
   font-size: 15px;
+  border: 1px solid #ccc; /* Add border for input fields */
+  border-radius: 8px;
+  background-color: #f8f8f8;
+  transition: border-color 0.3s ease;
+}
+
+.regenerate-input .input-field:focus {
+  border-color: #1BDBDB; /* Focus effect */
 }
 
 .button-small {
   padding: 12px 24px;
   font-size: 15px;
+  border-radius: 8px; /* Add rounded corners to buttons */
 }
 
 .image-slots-page .button-group {
@@ -101,3 +113,26 @@
   margin-top: 20px;
 }
 
+@media (max-width: 1024px) {
+  /* Adjust grid for smaller screens */
+  .images-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Adjust grid for mobile */
+  .images-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .regenerate-btn {
+    top: 8px;
+    right: 8px;
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+}
