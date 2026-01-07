@@ -115,3 +115,38 @@
   filter: grayscale(1);
 }
 
+.loading-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #f0f0f0;
+  text-align: center;
+}
+
+.loading-screen h1 {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.loading-screen a {
+  text-decoration: none;
+}
+
+.bitstarz-logo {
+  width: 50px;
+  height: 50px;
+  margin-top: 20px;
+  animation: rotateLogo 2s linear infinite; /* Rotation animation */
+  user-select: none; /* Prevent text/image selection */
+}
+
+@keyframes rotateLogo {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

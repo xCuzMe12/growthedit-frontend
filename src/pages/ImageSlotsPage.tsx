@@ -71,8 +71,9 @@ function ImageSlotsPage() {
         console.log(`Regenerating image ${id} with prompt:`, image.regeneratePrompt)
 
         // Call your backend to regenerate the image and get the new URL
-        const newImageData = await regenerateImage(image.regeneratePrompt, 0);
-
+        const newImageData = await regenerateImage(image.regeneratePrompt, id);
+        console.log('DATA dana notr', id, image.regeneratePrompt)
+        console.log('New image data received:', newImageData)
         // Replace the old image URL with the new one
         setImages(images.map((img) =>
           img.id === id ? { ...img, url: newImageData.s3_url, regenerating: false, regeneratePrompt: '' } : img
