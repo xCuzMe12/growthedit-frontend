@@ -8,6 +8,10 @@ function TemplatePage() {
   const [prompt, setPrompt] = useState('')
   const [image, setImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const templates = [
+    { value: 'add', label: 'Ad Template' },
+    { value: 'flashlight_POV', label: 'Flashlight POV Template' },
+  ]
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -43,6 +47,7 @@ function TemplatePage() {
               onChange={(e) => setTemplate(e.target.value)}
             >
               <option value="add">Ad Template</option>
+              <option value="flashlight_POV">Flashlight POV Template</option>
             </select>
           </div>
 
@@ -57,34 +62,37 @@ function TemplatePage() {
           </div>
         </div>
 
-        <div className="form-group">
-          <label className="label">Reference Image (Optional)</label>
-          <div className="upload-area">
-            <input
-              type="file"
-              id="image-upload"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="file-input"
-            />
-            <label htmlFor="image-upload" className="upload-label">
-              {imagePreview ? (
-                <div className="image-preview">
-                  <img src={imagePreview} alt="Preview" />
-                  <div className="image-overlay">
-                    <span>Change Image</span>
+        {/* Only show the reference image section if the template is "Ad Template" */}
+        {template === 'add' && (
+          <div className="form-group">
+            <label className="label">Reference Image (Optional)</label>
+            <div className="upload-area">
+              <input
+                type="file"
+                id="image-upload"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="file-input"
+              />
+              <label htmlFor="image-upload" className="upload-label">
+                {imagePreview ? (
+                  <div className="image-preview">
+                    <img src={imagePreview} alt="Preview" />
+                    <div className="image-overlay">
+                      <span>Change Image</span>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <>
-                  <div className="upload-icon">📷</div>
-                  <div>Upload an image</div>
-                  <div className="upload-hint">PNG, JPG up to 10MB</div>
-                </>
-              )}
-            </label>
+                ) : (
+                  <>
+                    <div className="upload-icon">📷</div>
+                    <div>Upload an image</div>
+                    <div className="upload-hint">PNG, JPG up to 10MB</div>
+                  </>
+                )}
+              </label>
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="button-group">
           <button 
@@ -108,4 +116,3 @@ function TemplatePage() {
 }
 
 export default TemplatePage
-

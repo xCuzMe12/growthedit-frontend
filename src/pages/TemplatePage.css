@@ -29,7 +29,7 @@
 }
 
 .upload-area {
-  width: 100%;
+  width: 35%;
 }
 
 .file-input {
@@ -41,15 +41,17 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 40px;
+  padding: 20px 15px; /* Further reduced padding */
   border: 3px dashed rgba(153, 104, 255, 0.3);
-  border-radius: 16px;
+  border-radius: 12px; /* Slightly smaller radius */
   cursor: pointer;
   transition: all 0.3s ease;
   text-align: center;
   color: #b0b0b0;
   background: rgba(255, 255, 255, 0.03);
-  min-height: 400px;
+  min-height: 180px; /* Reduced min-height */
+  max-width: 200px; /* Reduced max-width */
+  margin: 0 auto; /* Center the box */
 }
 
 .upload-label:hover {
@@ -57,6 +59,8 @@
   background: rgba(27, 219, 219, 0.05);
   box-shadow: 0 0 30px rgba(27, 219, 219, 0.2);
 }
+
+
 
 .upload-icon {
   font-size: 64px;
