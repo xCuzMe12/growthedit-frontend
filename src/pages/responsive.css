@@ -1,0 +1,54 @@
+/* Responsive overrides for all pages */
+
+@media (max-width: 1400px) {
+  .template-page .page-content,
+  .full-video-page .page-content,
+  .final-video-page .page-content {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .images-grid,
+  .videos-list {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+  }
+}
+
+@media (max-width: 768px) {
+  .welcome-header h1 {
+    font-size: 48px;
+  }
+
+  .welcome-content h2 {
+    font-size: 32px;
+  }
+
+  .welcome-description {
+    font-size: 16px;
+  }
+
+  .welcome-buttons {
+    flex-direction: column;
+  }
+
+  .welcome-buttons .button {
+    min-width: 100%;
+  }
+
+  .images-grid,
+  .videos-list {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .label {
+    font-size: 14px;
+  }
+
+  .input-field {
+    font-size: 14px;
+    padding: 12px 16px;
+  }
+}
+
