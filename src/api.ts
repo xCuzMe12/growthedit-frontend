@@ -56,6 +56,16 @@ export const generateVideos = async (images: any[]) => {
   }
 };
 
+export const regenerateVideo = async (prompt: string) => {
+  try {
+
+    const response = await api.post('/regenerate-video', { "prompt": prompt });
+    return response.data;  // Handle the response as needed
+  } catch (error) {
+    console.error('Error submitting video regeneration:', error);
+    throw error;
+  }
+};
 
 
 
