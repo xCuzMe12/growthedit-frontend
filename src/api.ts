@@ -8,7 +8,7 @@ const BASE_URL = 'http://localhost:8000';
 // Create an instance of Axios with default configurations
 const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 5000000, // Set the request timeout (optional)
+  timeout: 5000000000, // Set the request timeout (optional)
 });
 
 
@@ -68,8 +68,42 @@ export const regenerateVideo = async (prompt: string) => {
 };
 
 
+export const renderVideo = async (payload: any) => {
+  try {
+
+    const response = await api.post('/render/assembly', payload);
+    console.log('Render response:', response.data);
+    return response.data;  // Handle the response as needed
+  } catch (error) {
+    console.error('Error submitting video regeneration:', error);
+    throw error;
+  }
+};
 
 
+export const renderStatus = async (workflow_id: string) => {
+  try {
+
+    const response = await api.get(`/render/${workflow_id}`);
+    console.log('Render response:', response.data);
+    return response.data;  // Handle the response as needed
+  } catch (error) {
+    console.error('Error submitting video regeneration:', error);
+    throw error;
+  }
+};
+
+export const renderResult = async (workflow_id: string) => {
+  try {
+
+    const response = await api.get(`/render/${workflow_id}/result`);
+    console.log('Render response:', response.data);
+    return response.data;  // Handle the response as needed
+  } catch (error) {
+    console.error('Error submitting video regeneration:', error);
+    throw error;
+  }
+};
 
 
 

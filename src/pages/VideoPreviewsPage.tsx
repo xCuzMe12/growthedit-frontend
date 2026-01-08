@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Fragment } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import './VideoPreviewsPage.css'
-import { regenerateVideo } from '../api'
+import { regenerateVideo, renderVideo } from '../api'
 
 interface VideoPreview {
   clip_id: number
@@ -10,29 +10,28 @@ interface VideoPreview {
   regeneratePrompt: string
 }
 
+type TransitionType = 'fade' // easy to extend later
+
 function VideoPreviewsPage() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  // Retrieve videos (the result data) passed from the previous page
   const [videos, setVideos] = useState<VideoPreview[]>([])
 
-  useEffect(() => {
-    // Get the result data from the location state passed from the previous page
-    const result = location.state?.result || []
+  const [transition1, setTransition1] = useState<TransitionType>('fade')
+  const [transition2, setTransition2] = useState<TransitionType>('fade')
 
-    // Create an array of video previews with video URLs
+  useEffect(() => {
+    const result = location.state?.result || []
     const videoPreviews = result.map((item: any) => ({
       clip_id: item.clip_id,
-      video_s3_url: item.video_s3_url,  // Using the actual video URL
-      regenerating: false,  // To handle regenerating state
-      regeneratePrompt: '',  // Prompt for regeneration
+      video_s3_url: item.video_s3_url,
+      regenerating: false,
+      regeneratePrompt: '',
     }))
-
-    setVideos(videoPreviews)  // Update state with video URLs
+    setVideos(videoPreviews)
   }, [location.state])
 
-  // Toggle regenerating state for a video
   const toggleRegenerate = (clip_id: number) => {
     setVideos(prev =>
       prev.map(video =>
@@ -43,7 +42,6 @@ function VideoPreviewsPage() {
     )
   }
 
-  // Update the regenerate prompt for a video
   const updateRegeneratePrompt = (clip_id: number, prompt: string) => {
     setVideos(prev =>
       prev.map(video =>
@@ -52,11 +50,9 @@ function VideoPreviewsPage() {
     )
   }
 
-  // Handle the video regeneration process
   const handleRegenerate = async (clip_id: number) => {
     const video = videos.find((vid) => vid.clip_id === clip_id)
     if (!video || !video.regeneratePrompt) return
-
     const promptToUse = video.regeneratePrompt
     const previousUrl = video.video_s3_url
 
@@ -89,62 +85,148 @@ function VideoPreviewsPage() {
     }
   }
 
+  const handleContinue = async () => {
+    if (videos.length !== 3) {
+      console.error('Expected exactly 3 videos, got:', videos.length)
+      return
+    }
+  
+    const project_id = location.state?.project_id || 'sample_assembly_three_clips_001'
+  
+    const payload = {
+      project_id,
+      output_config: {
+        resolution: '1920x1080',
+        fps: 30,
+        format: 'mov',
+        bucket: 'growthedit-renders',
+        key: `outputs/${project_id}.mov`,
+      },
+      resources: {
+        vid_01: { type: 'video', url: videos[0].video_s3_url },
+        vid_02: { type: 'video', url: videos[1].video_s3_url },
+        vid_03: { type: 'video', url: videos[2].video_s3_url },
+      },
+      timeline: {
+        video_track: [
+          {
+            resource_id: 'vid_01',
+            trim_in: 0.0,
+            trim_out: 4.0,
+            transition: {
+              type: transition1,
+              duration: 1.0,
+            },
+          },
+          {
+            resource_id: 'vid_02',
+            trim_in: 0.0,
+            trim_out: 4.0,
+            transition: {
+              type: transition2,
+              duration: 1.5,
+            },
+          },
+          {
+            resource_id: 'vid_03',
+            trim_in: 0.0,
+            trim_out: 10.0,
+            transition: null,
+          },
+        ],
+      },
+    }
+  
+    console.log('ASSEMBLY PAYLOAD:', payload)
+  
+    try {
+      console.log('Sending render request...')
+      const res = await renderVideo(payload);
+      console.log('Render response:', res)
+  
+      // If the render request succeeds, navigate to the next page
+      navigate('/full-video', { state: { payload, render: res } })
+    } catch (e) {
+      console.error('Error sending render request:', e)
+      // Optional: Show a user-friendly error message here
+      alert("Something went wrong with the video rendering request. Please try again later.");
+    }
+  }
+  
+
   return (
     <div className="page video-previews-page">
       <div className="page-header">
         <h1>Video Previews</h1>
         <p>Select your favorite video or regenerate</p>
       </div>
+
       <div className="page-content">
         <div className="videos-list">
-          {videos.map((video) => (
-            <div key={video.clip_id} className="video-preview">
-              <div className="video-container">
-                <div className="video-thumbnail">
-                  <video key={video.video_s3_url} width="100%" height="100%" controls>
-                    <source src={video.video_s3_url} type="video/mp4" />
-                    Your browser does not support the video tag.
-                  </video>
-                </div>
-                <button 
-                  className="regenerate-btn"
-                  onClick={() => toggleRegenerate(video.clip_id)}
-                >
-                  🔄
-                </button>
-              </div>
-              {video.regenerating && (
-                <div className="regenerate-input">
-                  <input
-                    type="text"
-                    className="input-field"
-                    placeholder="What would you like to change?"
-                    value={video.regeneratePrompt}
-                    onChange={(e) => updateRegeneratePrompt(video.clip_id, e.target.value)}
-                  />
+          {videos.map((video, idx) => (
+            <Fragment key={video.clip_id}>
+              <div className="video-preview">
+                <div className="video-container">
+                  <div className="video-thumbnail">
+                    <video key={video.video_s3_url} width="100%" height="100%" controls>
+                      <source src={video.video_s3_url} type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
+                  </div>
+
                   <button
-                    className="button button-primary button-small"
-                    onClick={() => handleRegenerate(video.clip_id)}
+                    className="regenerate-btn"
+                    onClick={() => toggleRegenerate(video.clip_id)}
                   >
-                    Apply
+                    🔄
+                  </button>
+                </div>
+
+                {video.regenerating && (
+                  <div className="regenerate-input">
+                    <input
+                      type="text"
+                      className="input-field"
+                      placeholder="What would you like to change?"
+                      value={video.regeneratePrompt}
+                      onChange={(e) => updateRegeneratePrompt(video.clip_id, e.target.value)}
+                    />
+                    <button
+                      className="button button-primary button-small"
+                      onClick={() => handleRegenerate(video.clip_id)}
+                    >
+                      Apply
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Transition Buttons - placed between videos */}
+              {idx < videos.length - 1 && (
+                <div className="transition-item">
+                  <button 
+                    className="button button-secondary transition-btn" 
+                    onClick={() => {
+                      if (idx === 0) setTransition1('fade')
+                      if (idx === 1) setTransition2('fade')
+                        console.log('Transition:', idx + 1, transition1, transition2)
+                    }}
+                  >
+                    Transition {idx + 1}: <strong>{idx === 0 ? transition1 : transition2}</strong>
                   </button>
                 </div>
               )}
-            </div>
+            </Fragment>
           ))}
         </div>
 
         <div className="button-group">
-          <button 
-            className="button button-primary"
-            onClick={() => navigate('/full-video')}
-          >
+          <button className="button button-primary" onClick={handleContinue}>
             Continue with Video Rendering
           </button>
 
           <button
             className="button button-secondary"
-            // onClick={() => navigate('/image-slots')}
             onClick={() => console.log(videos)}
           >
             Back
@@ -155,4 +237,4 @@ function VideoPreviewsPage() {
   )
 }
 
-export default VideoPreviewsPage;
+export default VideoPreviewsPage
