@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './ImageSlotsPage.css';
 import { regenerateImage, generateVideos } from '../api';
@@ -22,8 +22,14 @@ function ImageSlotsPage() {
 
   // Retrieve images and result from the previous page's state
   const [images, setImages] = useState<ImageSlot[]>([]);
+  const imagesRef = useRef<ImageSlot[]>([]);
   const result = location.state?.result || []; // Get result from location state
   var result_temp = location.state?.result || [];;
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    imagesRef.current = images;
+  }, [images]);
 
   useEffect(() => {
     // Create an array of images: first 3 start frames, then 3 end frames
@@ -50,36 +56,62 @@ function ImageSlotsPage() {
 
   // Toggle the regenerating state of an image
   const toggleRegenerate = (id: number) => {
-    setImages(images.map((img) =>
+    setImages(prev => prev.map((img) =>
       img.id === id ? { ...img, regenerating: !img.regenerating, regeneratePrompt: '' } : img
     ));
   };
 
   // Update the regeneration prompt for a specific image
   const updateRegeneratePrompt = (id: number, prompt: string) => {
-    setImages(images.map((img) =>
+    setImages(prev => prev.map((img) =>
       img.id === id ? { ...img, regeneratePrompt: prompt } : img
     ));
   };
 
   // Handle the regeneration process when the user clicks "Apply"
   const handleRegenerate = async (id: number) => {
-    const image = images.find((img) => img.id === id);
-    if (image && image.regeneratePrompt) {
-      try {
-        console.log(`Regenerating image ${id} with prompt:`, image.regeneratePrompt);
+    // Get the current image from the ref (always has latest state)
+    const image = imagesRef.current.find((img) => img.id === id);
+    if (!image || !image.regeneratePrompt) {
+      return;
+    }
 
-        // Call your backend to regenerate the image and get the new URL
-        const newImageData = await regenerateImage(image.regeneratePrompt, id);
-        console.log('New image data received:', newImageData);
+    try {
+      console.log(`Regenerating image ${id} with prompt:`, image.regeneratePrompt);
 
-        // Replace the old image URL with the new one
-        setImages(images.map((img) =>
-          img.id === id ? { ...img, url: newImageData.s3_url, regenerating: false, regeneratePrompt: '' } : img
-        ));
-      } catch (error) {
-        console.error('Error regenerating image:', error);
+      // Call your backend to regenerate the image and get the new URL
+      const newImageData = await regenerateImage(image.regeneratePrompt, id);
+      console.log('New image data received:', newImageData);
+
+      // Update the state with the new image URL using functional update
+      setImages(currentImages =>
+        currentImages.map((img) =>
+          img.id === id
+            ? { ...img, url: newImageData.s3_url, regenerating: false, regeneratePrompt: '' }
+            : img
+        )
+      );
+
+      // Also update the result array if needed
+      if (image.isStartFrame) {
+        const resultIndex = id - 1;
+        if (result_temp[resultIndex]) {
+          result_temp[resultIndex].start_frame_s3_url = newImageData.s3_url;
+        }
+      } else {
+        const resultIndex = id - 4;
+        if (result_temp[resultIndex]) {
+          result_temp[resultIndex].end_frame_s3_url = newImageData.s3_url;
+        }
       }
+    } catch (error) {
+      console.error('Error regenerating image:', error);
+      // Reset regenerating state on error
+      setImages(currentImages =>
+        currentImages.map((img) =>
+          img.id === id ? { ...img, regenerating: false } : img
+        )
+      );
     }
   };
 
@@ -94,7 +126,7 @@ function ImageSlotsPage() {
           {images.map((image) => (
             <div key={image.id} className="image-slot">
               <div className="image-container">
-                <img src={image.url} alt={`Frame ${image.id}`} />
+                <img key={image.url} src={image.url} alt={`Frame ${image.id}`} />
                 <button 
                   className="regenerate-btn"
                   onClick={() => toggleRegenerate(image.id)}
