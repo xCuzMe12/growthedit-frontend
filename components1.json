@@ -1,0 +1,52 @@
+{
+  "project_id": "sample_assembly_three_clips_001",
+  "output_config": {
+    "resolution": "1920x1080",
+    "fps": 30,
+    "format": "mov",
+    "bucket": "growthedit-renders",
+    "key": "outputs/sample_assembly_three_clips_001.mov"
+  },
+  "resources": {
+    "vid_01": {
+      "type": "video",
+      "url": "https://t3.storage.dev/growthedit/kling/2d281ddb3228441c893f5d5e04a5ca62?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=tid_buKCvqiHQ_uTawdhUrGHLqdqKTKpogznOyzdZOwOTsrzfzwwfm%2F20260108%2Fauto%2Fs3%2Faws4_request&X-Amz-Date=20260108T112809Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=4bc776a04f044a8e149fe3e442628c163df496614c52821b2a74120e06911f64"
+    },
+    "vid_02": {
+      "type": "video",
+      "url": "https://t3.storage.dev/growthedit/kling/6119887056fe4644b73268b9e2c6c67a?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=tid_buKCvqiHQ_uTawdhUrGHLqdqKTKpogznOyzdZOwOTsrzfzwwfm%2F20260108%2Fauto%2Fs3%2Faws4_request&X-Amz-Date=20260108T112759Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=c71162e8eba2da65ca7033d5424f58275c03d06c55229d7e2e67bc60490edc42"
+    },
+    "vid_03": {
+      "type": "video",
+      "url": "https://t3.storage.dev/growthedit/kling/7d7d2087006846f1bf419ef068248d68?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=tid_buKCvqiHQ_uTawdhUrGHLqdqKTKpogznOyzdZOwOTsrzfzwwfm%2F20260108%2Fauto%2Fs3%2Faws4_request&X-Amz-Date=20260108T112827Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=4decb78e7b3c12d8674b17aef6a3e8789d79427d47c1656917f7c0b210990d26"
+    }
+  },
+  "timeline": {
+    "video_track": [
+      {
+        "resource_id": "vid_01",
+        "trim_in": 0.0,
+        "trim_out": 4.0,
+        "transition": {
+          "type": "fade",
+          "duration": 1.0
+        }
+      },
+      {
+        "resource_id": "vid_02",
+        "trim_in": 0.0,
+        "trim_out": 4.0,
+        "transition": {
+          "type": "fade",
+          "duration": 1.5
+        }
+      },
+      {
+        "resource_id": "vid_03",
+        "trim_in": 0.0,
+        "trim_out": 10.0,
+        "transition": null
+      }
+    ]
+  }
+}

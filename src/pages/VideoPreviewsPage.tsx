@@ -98,9 +98,9 @@ function VideoPreviewsPage() {
       output_config: {
         resolution: '1920x1080',
         fps: 30,
-        format: 'mov',
+        format: 'mp4',
         bucket: 'growthedit-renders',
-        key: `outputs/${project_id}.mov`,
+        key: `outputs/${project_id}.mp4`,
       },
       resources: {
         vid_01: { type: 'video', url: videos[0].video_s3_url },
@@ -145,7 +145,7 @@ function VideoPreviewsPage() {
       console.log('Render response:', res)
   
       // If the render request succeeds, navigate to the next page
-      navigate('/full-video', { state: { payload, render: res } })
+      navigate('/full-video', { state: { payload, render: res, workflowId: res.workflow_id } });
     } catch (e) {
       console.error('Error sending render request:', e)
       // Optional: Show a user-friendly error message here
