@@ -105,6 +105,18 @@ export const renderResult = async (workflow_id: string) => {
   }
 };
 
+export const renderWithAudio = async (payload: any) => {
+  try {
+
+    const response = await api.post('/render/composite', payload);
+    console.log('Render response:', response.data);
+    return response.data;  // Handle the response as needed
+  } catch (error) {
+    console.error('Error submitting video regeneration:', error);
+    throw error;
+  }
+};
+
 
 
 
